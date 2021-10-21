@@ -12,7 +12,8 @@ const Review = require('./models/review');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useUnifiedTopology: true,
 });
 
 const db = mongoose.connection;
@@ -92,6 +93,13 @@ app.post('/campgrounds/:id/reviews', validateReview, catchAsync(async(req, res) 
     await review.save();
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
+}));
+
+app.delete('/campgrounds/:id/reviews/:reviewId', catchAsync(async(req, res) => {
+    const {id, reviewId} = req.params;
+    await Campground.findByIdAndUpdate(id, {$pull: {reviews: reviewId}});
+    await Review.findByIdAndDelete(req.params.reviewId);
+    res.redirect(`/campgrounds/${id}`);
 }));
 
 app.delete('/campgrounds/:id', catchAsync(async(req, res) => {
