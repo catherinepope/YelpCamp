@@ -38,6 +38,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const sessionConfig = {
     secret: 'thisshouldbeabettersecret!',
@@ -61,25 +62,22 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
+    if(!['/login', '/register', '/'].includes(req.originalUrl)) {
+        req.session.returnTo = req.originalUrl;
+    console.log(req.originalUrl);
+    }
     res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
 });
 
-app.get('/fakeUser', async (req, res) => {
-    const user = new User({email: 'me@catherinepope.com', username: 'cp'});
-    const newUser = await User.register(user, 'chicken');
-    res.send(newUser);
-});
-
 app.use('/', userRoutes);
 app.use('/campgrounds', campgroundRoutes);
 app.use('/campgrounds/:id/reviews', reviewRoutes);
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.send('home');
+    res.render('home');
 });
 
 app.all('*', (req, res, next) => {
